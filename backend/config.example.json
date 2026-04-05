@@ -1,0 +1,72 @@
+{
+  "app": {
+    "title": "NexEval",
+    "version": "0.3.0",
+    "env": "development",
+    "cors_origins": ["*"]
+  },
+
+  "database": {
+    "host": "localhost",
+    "port": 5432,
+    "name": "rag_eval_db",
+    "user": "postgres",
+    "password": "change-me",
+    "pool_size": 10,
+    "max_overflow": 20,
+    "pool_pre_ping": true
+  },
+
+  "openai": {
+    "api_key": "",
+    "model": "gpt-4o-mini",
+    "temperature": 0.7,
+    "max_tokens": 500
+  },
+
+  "deepeval": {
+    "model": "gpt-4o-mini"
+  },
+
+  "evaluation_thresholds": {
+    "faithfulness": 0.5,
+    "answer_relevancy": 0.5,
+    "contextual_relevancy": 0.5,
+    "contextual_precision": 0.5,
+    "contextual_recall": 0.5,
+    "hallucination": 0.5
+  },
+
+  "root_cause_thresholds": {
+    "retrieval_failure_ctx_relevancy": 0.5,
+    "retrieval_failure_ctx_recall": 0.5,
+    "ranking_issue_ctx_precision": 0.5,
+    "ranking_issue_ctx_recall_min": 0.5,
+    "generation_failure_faithfulness": 0.5,
+    "generation_failure_ctx_relevancy_min": 0.5,
+    "hallucination_score": 0.3,
+    "irrelevant_answer_relevancy": 0.5
+  },
+
+  "rephraser": {
+    "variant_count": 4,
+    "temperature": 0.7,
+    "max_tokens": 500,
+    "system_prompt": "You are a query optimization assistant for a RAG-based chatbot. Given a user question, generate {variant_count} rephrased versions that are clearer, more specific, and more likely to retrieve relevant documents from a regulatory/pharmaceutical knowledge base. Each rephrased question should approach the topic from a slightly different angle or use different keywords. Return ONLY the rephrased questions, one per line, numbered 1-{variant_count}."
+  },
+
+  "chunk_analyzer": {
+    "tfidf_max_features": 5000,
+    "tfidf_stop_words": "english",
+    "content_preview_length": 200
+  },
+
+  "chunk_parser": {
+    "ins_id_pattern": "INS\\d{3,}",
+    "min_paragraph_length": 20
+  },
+
+  "evaluation": {
+    "auto_evaluate": false
+  }
+}

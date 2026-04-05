@@ -1,0 +1,30 @@
+# Local overrides (never commit secrets — use backend/config.example.json)
+backend/config.json
+backend/.env
+backend/.venv
+backend/**/__pycache__/
+backend/**/*.py[cod]
+backend/*.egg-info/
+backend/dist/
+backend/build/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Logs
+*.log
+npm-debug.log*

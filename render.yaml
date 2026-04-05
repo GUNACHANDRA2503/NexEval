@@ -1,0 +1,21 @@
+# Render Blueprint (optional). Create a Web Service + set env in the dashboard:
+# DATABASE_URL, JWT_SECRET, NEXEVAL_ENV=production, CORS_ORIGINS, VITE_API_BASE on the static site.
+#
+# Docs: https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: nexeval-api
+    runtime: docker
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: NEXEVAL_ENV
+        value: production
+      - key: PORT
+        value: "8000"
+      # Set in dashboard (secrets):
+      # DATABASE_URL
+      # JWT_SECRET
+      # CORS_ORIGINS
