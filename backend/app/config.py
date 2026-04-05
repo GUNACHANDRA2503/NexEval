@@ -11,7 +11,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from pydantic import AliasChoices, Field, field_validator
+from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 _CONFIG_PATH = Path(__file__).resolve().parent.parent / "config.json"
@@ -46,6 +46,20 @@ def _normalize_database_url(url: str) -> str:
     return u
 
 
+def _parse_cors(value: str | None) -> list[str]:
+    """Parse CORS origins from a string — handles plain URL, comma-separated, or JSON array."""
+    if not value or not value.strip():
+        return list(_app.get("cors_origins", ["*"]))
+    v = value.strip()
+    try:
+        parsed = json.loads(v)
+        if isinstance(parsed, list):
+            return [str(x).strip() for x in parsed]
+    except (json.JSONDecodeError, ValueError):
+        pass
+    return [x.strip() for x in v.split(",") if x.strip()]
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -60,24 +74,9 @@ class Settings(BaseSettings):
         default=_app.get("env", "development"),
         validation_alias=AliasChoices("environment", "NEXEVAL_ENV"),
     )
-    cors_origins: list[str] = Field(
-        default_factory=lambda: list(_app.get("cors_origins", ["*"])),
-        validation_alias="CORS_ORIGINS",
-    )
 
-    @field_validator("cors_origins", mode="before")
-    @classmethod
-    def parse_cors(cls, v):
-        if isinstance(v, str):
-            v = v.strip()
-            if not v:
-                return ["*"]
-            try:
-                import json
-                return json.loads(v)
-            except Exception:
-                return [x.strip() for x in v.split(",") if x.strip()]
-        return v
+    # Read CORS as plain string — avoids pydantic-settings JSON-parsing list fields
+    _cors_origins_str: str | None = Field(default=None, validation_alias="CORS_ORIGINS")
 
     # --- Database (optional single URL for Neon / Render / etc.) ---
     database_url_direct: str | None = Field(
@@ -151,6 +150,10 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 10080
     nexeval_credentials_key: str = ""
+
+    @property
+    def cors_origins(self) -> list[str]:
+        return _parse_cors(self._cors_origins_str)
 
     @property
     def is_production(self) -> bool:
