@@ -76,7 +76,7 @@ class Settings(BaseSettings):
     )
 
     # Read CORS as plain string — avoids pydantic-settings JSON-parsing list fields
-    _cors_origins_str: str | None = Field(default=None, validation_alias="CORS_ORIGINS")
+    cors_origins_str: str | None = Field(default=None, validation_alias="CORS_ORIGINS")
 
     # --- Database (optional single URL for Neon / Render / etc.) ---
     database_url_direct: str | None = Field(
@@ -153,7 +153,7 @@ class Settings(BaseSettings):
 
     @property
     def cors_origins(self) -> list[str]:
-        return _parse_cors(self._cors_origins_str)
+        return _parse_cors(self.cors_origins_str)
 
     @property
     def is_production(self) -> bool:
