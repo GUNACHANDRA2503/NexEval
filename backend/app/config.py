@@ -60,8 +60,9 @@ class Settings(BaseSettings):
         default=_app.get("env", "development"),
         validation_alias=AliasChoices("environment", "NEXEVAL_ENV"),
     )
-    cors_origins: list[str] = Field(default_factory=lambda: list(_app.get("cors_origins", ["*"])))
+    # IMPORTANT: Define cors_origins_raw BEFORE cors_origins to avoid JSON parsing conflicts
     cors_origins_raw: str | None = Field(default=None, validation_alias="CORS_ORIGINS")
+    cors_origins: list[str] = Field(default_factory=lambda: list(_app.get("cors_origins", ["*"])))
 
     # --- Database (optional single URL for Neon / Render / etc.) ---
     database_url_direct: str | None = Field(
