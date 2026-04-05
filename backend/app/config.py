@@ -11,7 +11,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from pydantic import AliasChoices, Field, model_validator
+from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 _CONFIG_PATH = Path(__file__).resolve().parent.parent / "config.json"
@@ -42,7 +42,7 @@ def _normalize_database_url(url: str) -> str:
     """SQLAlchemy/psycopg2 expect ``postgresql://``; some hosts return ``postgres://``."""
     u = url.strip()
     if u.startswith("postgres://"):
-        return "postgresql://" + u[len("postgres://") :]
+        return "postgresql://" + u[len("postgres://"):]
     return u
 
 
@@ -60,9 +60,24 @@ class Settings(BaseSettings):
         default=_app.get("env", "development"),
         validation_alias=AliasChoices("environment", "NEXEVAL_ENV"),
     )
-    # IMPORTANT: Define cors_origins_raw BEFORE cors_origins to avoid JSON parsing conflicts
-    cors_origins_raw: str | None = Field(default=None, validation_alias="CORS_ORIGINS")
-    cors_origins: list[str] = Field(default_factory=lambda: list(_app.get("cors_origins", ["*"])))
+    cors_origins: list[str] = Field(
+        default_factory=lambda: list(_app.get("cors_origins", ["*"])),
+        validation_alias="CORS_ORIGINS",
+    )
+
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def parse_cors(cls, v):
+        if isinstance(v, str):
+            v = v.strip()
+            if not v:
+                return ["*"]
+            try:
+                import json
+                return json.loads(v)
+            except Exception:
+                return [x.strip() for x in v.split(",") if x.strip()]
+        return v
 
     # --- Database (optional single URL for Neon / Render / etc.) ---
     database_url_direct: str | None = Field(
@@ -136,14 +151,6 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 10080
     nexeval_credentials_key: str = ""
-
-    @model_validator(mode="after")
-    def _apply_cors_from_env(self) -> "Settings":
-        if self.cors_origins_raw:
-            parsed = [x.strip() for x in self.cors_origins_raw.split(",") if x.strip()]
-            if parsed:
-                self.cors_origins = parsed
-        return self
 
     @property
     def is_production(self) -> bool:
